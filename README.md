@@ -11,6 +11,7 @@ A Go SDK for [Bark](https://github.com/Finb/Bark) - a simple and secure iOS push
   - Custom notification sounds
   - Time-sensitive notifications
   - Critical alerts
+  - Proper handling of newlines and special characters
 - Context support for cancellation and timeouts
 - Configurable base URL for self-hosted Bark servers
 
@@ -45,6 +46,13 @@ func main() {
         log.Fatal(err)
     }
 
+    // Send a multiline notification
+    err = client.Send(context.Background(), "First line\nSecond line\nThird line",
+        gobark.WithTitle("Multiline Message"))
+    if err != nil {
+        log.Fatal(err)
+    }
+
     // Send a notification with all options
     err = client.Send(context.Background(), "Important message!",
         gobark.WithTitle("Meeting Reminder"),
@@ -68,6 +76,16 @@ func main() {
 - `WithSound(sound string)`: Set notification sound
 - `WithTimeSensitive()`: Mark notification as time-sensitive
 - `WithCriticalNotify()`: Mark notification as critical alert
+
+## Newlines and Special Characters
+
+Bark supports newlines in notification content. You can include `\n` in your message body to create line breaks:
+
+```go
+client.Send(context.Background(), "Line 1\nLine 2\nLine 3")
+```
+
+The SDK automatically handles URL encoding of special characters, including newlines, to ensure they are properly transmitted to the Bark server.
 
 ## License
 

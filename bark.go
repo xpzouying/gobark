@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 )
 
 // Client represents a Bark API client.
@@ -107,31 +106,19 @@ func WithCriticalNotify() Option {
 	}
 }
 
-// Send sends a push notification through Bark.
-// The body parameter is required and represents the main content of the notification.
-// Additional options can be provided to customize the notification.
-func (c *Client) Send(ctx context.Context, body string, opts ...Option) error {
-	if body == "" {
-		return fmt.Errorf("notification body is required")
-	}
-
-	n := &notification{
-		title: defaultTitle,
-		body:  body,
-	}
-
-	for _, opt := range opts {
-		opt(n)
-	}
+// buildNotificationURL constructs the complete notification URL with all parameters
+func (c *Client) buildNotificationURL(n *notification) string {
+	// URL encode the body to handle special characters, especially newlines (\n)
+	encodedBody := url.PathEscape(n.body)
 
 	// Build the URL path based on available parameters
-	urlPath := path.Join(c.key)
+	urlPath := c.key
 	if n.title != "" && n.subtitle != "" {
-		urlPath = path.Join(urlPath, n.title, n.subtitle, n.body)
+		urlPath = fmt.Sprintf("%s/%s/%s/%s", urlPath, url.PathEscape(n.title), url.PathEscape(n.subtitle), encodedBody)
 	} else if n.title != "" {
-		urlPath = path.Join(urlPath, n.title, n.body)
+		urlPath = fmt.Sprintf("%s/%s/%s", urlPath, url.PathEscape(n.title), encodedBody)
 	} else {
-		urlPath = path.Join(urlPath, n.body)
+		urlPath = fmt.Sprintf("%s/%s", urlPath, encodedBody)
 	}
 
 	// Build the query parameters for additional options
@@ -154,6 +141,28 @@ func (c *Client) Send(ctx context.Context, body string, opts ...Option) error {
 	if len(query) > 0 {
 		apiURL += "?" + query.Encode()
 	}
+
+	return apiURL
+}
+
+// Send sends a push notification through Bark.
+// The body parameter is required and represents the main content of the notification.
+// Additional options can be provided to customize the notification.
+func (c *Client) Send(ctx context.Context, body string, opts ...Option) error {
+	if body == "" {
+		return fmt.Errorf("notification body is required")
+	}
+
+	n := &notification{
+		title: defaultTitle,
+		body:  body,
+	}
+
+	for _, opt := range opts {
+		opt(n)
+	}
+
+	apiURL := c.buildNotificationURL(n)
 
 	// Create and send the request
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
