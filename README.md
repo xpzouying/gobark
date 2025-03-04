@@ -17,7 +17,7 @@ A Go SDK for [Bark](https://github.com/Finb/Bark) - a simple and secure iOS push
 ## Installation
 
 ```bash
-go get github.com/zy/gobark
+go get github.com/xpzouying/gobark
 ```
 
 ## Usage
@@ -29,7 +29,7 @@ import (
     "context"
     "log"
 
-    "github.com/zy/gobark"
+    "github.com/xpzouying/gobark"
 )
 
 func main() {

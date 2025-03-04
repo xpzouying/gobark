@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/zy/gobark"
+	"github.com/xpzouying/gobark"
 )
 
 func Example() {
